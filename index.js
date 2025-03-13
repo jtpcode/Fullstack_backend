@@ -1,6 +1,5 @@
 const express = require('express')
 const morgan = require('morgan')
-const cors = require('cors')
 
 const app = express()
 
@@ -39,7 +38,6 @@ morgan.token('body', (request) => {
 // Middleware
 app.use(express.json())
 app.use(express.static('dist'))
-app.use(cors())
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
 app.get('/', (request, response) => {
