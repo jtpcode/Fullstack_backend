@@ -1,5 +1,7 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
+const Person = require('./models/person')
 
 const app = express()
 
@@ -40,11 +42,11 @@ app.use(express.json())
 app.use(express.static('dist'))
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
+// Routes
 app.get('/', (request, response) => {
   response.send('<h1>Phonebook backend</h1>')
 })
 
-// Routes
 app.get('/info', (request, response) => {
   const timestamp = new Date()
   response.send(`
@@ -56,23 +58,29 @@ app.get('/info', (request, response) => {
 })
 
 app.get('/api/persons', (request, response) => {
-  response.json(persons)
+  Person.find({}).then(persons => {
+    response.json(persons)
+  })
 })
 
 app.get('/api/persons/:id', (request, response) => {
-  const id = request.params.id
-  const person = persons.find(person => person.id === id)
-
-  if (person) {
+  Person.findById(request.params.id).then(person => {
     response.json(person)
-  } else {
-    response.status(404).end()
-  }
+  })
+
+  // const id = request.params.id
+  // const person = persons.find(person => person.id === id)
+
+  // if (person) {
+  //   response.json(person)
+  // } else {
+  //   response.status(404).end()
+  // }
 })
 
-const generateId = (max) => {
-  return Math.floor(Math.random() * max)
-}
+// const generateId = (max) => {
+//   return Math.floor(Math.random() * max)
+// }
 
 app.post('/api/persons', (request, response) => {
   const body = request.body
@@ -97,15 +105,14 @@ app.post('/api/persons', (request, response) => {
     })
   }
 
-  const person = {
-    id: generateId(1000000000).toString(),
+  const person = new Person({
     name: body.name,
-    number: body.number
-  }
+    number:body.number,
+  })
 
-  persons = persons.concat(person)
-
-  response.json(person)
+  person.save().then(savedPerson => {
+    response.json(savedPerson)
+  })
 })
 
 app.delete('/api/persons/:id', (request, response) => {
@@ -115,7 +122,7 @@ app.delete('/api/persons/:id', (request, response) => {
   response.status(204).end()
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
