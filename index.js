@@ -45,21 +45,23 @@ app.get('/', (request, response) => {
 app.get('/info', (request, response, next) => {
   const timestamp = new Date()
 
-  Person.countDocuments({}).then(count => {
-    response.send(`
-      Phonebook has info for ${count} people
-      <br /><br />
-      ${timestamp}
-    `)
-  })
-  .catch(error => next(error))
+  Person.countDocuments({})
+    .then(count => {
+      response.send(`
+        Phonebook has info for ${count} people
+        <br /><br />
+        ${timestamp}
+      `)
+    })
+    .catch(error => next(error))
 })
 
 app.get('/api/persons', (request, response, next) => {
-  Person.find({}).then(persons => {
-    response.json(persons)
-  })
-  .catch(error => next(error))
+  Person.find({})
+    .then(persons => {
+      response.json(persons)
+    })
+    .catch(error => next(error))
 })
 
 app.get('/api/persons/:id', (request, response, next) => {
@@ -85,7 +87,7 @@ app.post('/api/persons', (request, response, next) => {
   person.save()
     .then(savedPerson => {
       response.json(savedPerson)
-    })  
+    })
     .catch(error => next(error))
 })
 
@@ -110,7 +112,7 @@ app.put('/api/persons/:id', (request, response, next) => {
 
 app.delete('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndDelete(request.params.id)
-    .then(result => {
+    .then(() => {
       response.status(204).end()
     })
     .catch(error => next(error))
