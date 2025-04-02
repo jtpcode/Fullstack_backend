@@ -12,8 +12,15 @@ const errorHandler = (error, request, response, next) => {
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
   }
+  else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
+  }
 
   next(error)
+}
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
 }
 
 // Morgan -logging
@@ -29,16 +36,13 @@ app.use(express.json())
 app.use(express.static('dist'))
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
-const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: 'unknown endpoint' })
-}
 
 // Routes
 app.get('/', (request, response) => {
   response.send('<h1>Phonebook backend</h1>')
 })
 
-app.get('/info', (request, response) => {
+app.get('/info', (request, response, next) => {
   const timestamp = new Date()
 
   Person.countDocuments({}).then(count => {
@@ -51,7 +55,7 @@ app.get('/info', (request, response) => {
   .catch(error => next(error))
 })
 
-app.get('/api/persons', (request, response) => {
+app.get('/api/persons', (request, response, next) => {
   Person.find({}).then(persons => {
     response.json(persons)
   })
@@ -70,30 +74,19 @@ app.get('/api/persons/:id', (request, response, next) => {
     .catch(error => next(error))
 })
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const body = request.body
-
-  // Name or number is missing
-  if (!body.name || body.name.length === 0) {
-    return response.status(400).json({ 
-      error: 'Name is missing.'
-    })
-  }
-  else if (!body.number || body.number.length === 0) {
-    return response.status(400).json({ 
-      error: 'Number is missing.' 
-    })
-  }
 
   const person = new Person({
     name: body.name,
     number:body.number,
   })
 
-  person.save().then(savedPerson => {
-    response.json(savedPerson)
-  })
-  .catch(error => next(error))
+  person.save()
+    .then(savedPerson => {
+      response.json(savedPerson)
+    })  
+    .catch(error => next(error))
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
