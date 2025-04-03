@@ -1,3 +1,2 @@
 # Phonebook (backend + frontend)
-[Production version](https://fullstack-part3-backend-r6cl.onrender.com/)
-Instructions TBA
+[Production version](https://phonebook-jdoo.onrender.com/)
